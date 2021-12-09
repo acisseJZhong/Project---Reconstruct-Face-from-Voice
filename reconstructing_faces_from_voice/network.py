@@ -70,6 +70,22 @@ class FaceEmbedNet(nn.Module):
         x = self.model(x)
         return x
 
+
+class Voice2Face(nn.Module):
+    def __init__(self, input_channel, channels, output_channel):
+        super(Voice2Face, self).__init__()
+        self.ve = VoiceEmbedNet(input_channel, channels[0], channels[1])
+        self.ge = Generator(channels[1], channels[2], output_channel)
+    
+    def forward(self, x, noise):
+        out = self.ve(x)
+        out = F.normalize(out)
+        if self.training:
+            out = out + noise
+            out = F.normalize(out)
+        out = self.ge(out)
+        return out
+
 class Classifier(nn.Module):
     def __init__(self, input_channel, channels, output_channel):
         super(Classifier, self).__init__()
@@ -90,6 +106,7 @@ def get_network(net_type, params, train=True):
         net.cuda()
 
     if train:
+        net.load_state_dict(torch.load(net_params['model_path']))
         net.train()
         optimizer = optim.Adam(net.parameters(),
                                lr=params['lr'],
@@ -97,5 +114,26 @@ def get_network(net_type, params, train=True):
     else:
         net.eval()
         net.load_state_dict(torch.load(net_params['model_path']))
+        optimizer = None
+    return net, optimizer
+
+
+def get_combined_network(net_type, params, train=True):
+    net_params = params[net_type]
+    net = net_params['network'](net_params['input_channel'],
+                                net_params['channels'],
+                                net_params['output_channel'])
+
+    if params['GPU']:
+        net.cuda()
+    net.ve.load_state_dict(torch.load(params['e']['model_path']))
+    net.ge.load_state_dict(torch.load(params['g']['model_path']))
+    if train:
+        net.train()
+        optimizer = optim.Adam(net.parameters(),
+                               lr=params['lr'],
+                               betas=(params['beta1'], params['beta2']))
+    else:
+        net.eval()
         optimizer = None
     return net, optimizer

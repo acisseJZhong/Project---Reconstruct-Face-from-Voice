@@ -16,6 +16,15 @@ def load_face(face_item):
     face_label = face_item['label_id']
     return face_data, face_label
 
+
+def load_test_face(face_item):
+    face_data = Image.open(face_item['filepath']).convert('RGB').resize([160, 160])
+    face_data = np.transpose(np.array(face_data), (2, 0, 1))
+    face_data = ((face_data - 127.5) / 127.5).astype('float32')
+    face_label = face_item['label_id']
+    return face_data, face_label
+
+
 class VoiceDataset(Dataset):
     def __init__(self, voice_list, nframe_range):
         self.voice_list = voice_list
@@ -39,6 +48,17 @@ class FaceDataset(Dataset):
         face_data, face_label = load_face(self.face_list[index])
         if np.random.random() > 0.5:
            face_data = np.flip(face_data, axis=2).copy()
+        return face_data, face_label
+
+    def __len__(self):
+        return len(self.face_list)
+
+class FaceTestset(Dataset):
+    def __init__(self, face_list):
+        self.face_list = face_list
+
+    def __getitem__(self, index):
+        face_data, face_label = load_test_face(self.face_list[index])
         return face_data, face_label
 
     def __len__(self):

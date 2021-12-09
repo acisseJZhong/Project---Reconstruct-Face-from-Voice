@@ -13,7 +13,6 @@ def get_labels(voice_list, face_list):
     voice_names = {item['name'] for item in voice_list}
     face_names = {item['name'] for item in face_list}
     names = voice_names & face_names
-
     voice_list = [item for item in voice_list if item['name'] in names]
     face_list = [item for item in face_list if item['name'] in names]
 
@@ -27,6 +26,7 @@ def get_labels(voice_list, face_list):
 def get_dataset_files(data_dir, data_ext, celeb_ids, split):
     data_list = []
     # read data directory
+    print(data_dir)
     for root, dirs, filenames in os.walk(data_dir):
         for filename in filenames:
             if filename.endswith(data_ext):
@@ -34,6 +34,7 @@ def get_dataset_files(data_dir, data_ext, celeb_ids, split):
                 # so hacky, be careful! 
                 folder = filepath[len(data_dir):].split('/')[1]
                 celeb_name = celeb_ids.get(folder, folder)
+                
                 if celeb_name.startswith(tuple(split)):
                     data_list.append({'filepath': filepath, 'name': celeb_name})
     return data_list
@@ -49,5 +50,36 @@ def get_dataset(data_params):
                                   data_params['face_ext'],
                                   celeb_ids,
                                   data_params['split'])
+    print(len(voice_list))
+    return get_labels(voice_list, face_list)
+
+
+def get_dataset(data_params):
+    celeb_ids = parse_metafile(data_params['meta_file'])
+    
+    voice_list = get_dataset_files(data_params['voice_dir'],
+                                   data_params['voice_ext'],
+                                   celeb_ids,
+                                   data_params['split'])
+    face_list = get_dataset_files(data_params['face_dir'],
+                                  data_params['face_ext'],
+                                  celeb_ids,
+                                  data_params['split'])
+    print(len(voice_list))
+    return get_labels(voice_list, face_list)
+
+
+def get_test_dataset(data_params):
+    celeb_ids = parse_metafile(data_params['meta_file'])
+    
+    voice_list = get_dataset_files(data_params['voice_dir'],
+                                   data_params['voice_ext'],
+                                   celeb_ids,
+                                   data_params['test_split'])
+    face_list = get_dataset_files(data_params['face_dir'],
+                                  data_params['face_ext'],
+                                  celeb_ids,
+                                  data_params['test_split'])
+    print(len(voice_list))
     return get_labels(voice_list, face_list)
 

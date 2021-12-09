@@ -106,6 +106,57 @@ def voice2face(e_net, g_net, voice_file, vad_obj, mfc_obj, GPU=True):
     fbank = get_fbank(vad_voice, mfc_obj)
     fbank = fbank.T[np.newaxis, ...]
     fbank = torch.from_numpy(fbank.astype('float32'))
+    if GPU:
+        fbank = fbank.cuda()
+    embedding = e_net(fbank)
+    embedding = F.normalize(embedding)
+    face = g_net(embedding)
+    return face
+
+def getNpy(ids):
+    npyDir = "data/fbank/id" + str(ids)
+    npy = None
+    for root, dirs, files in os.walk(npyDir):
+        if len(files) > 0: 
+            for f in files:
+                path = root + "/" + f
+                if npy is None:
+                    npy = np.load(path)
+                else:
+                    npy = np.concatenate((npy, np.load(path)))
+                if npy is not None and (npy.shape[0] >= 1000):
+                    break
+        if npy is not None and (npy.shape[0] >= 1000):
+            break
+    return npy
+
+
+def getMultipleNpy(ids):
+    npyDir = "data/fbank/id" + str(ids)
+    ret = []
+    c = 0
+    for root, dirs, files in os.walk(npyDir):
+        npy = None
+        if len(files) > 0: 
+            for f in files:
+                path = root + "/" + f
+                if npy is None:
+                    npy = np.load(path)
+                else:
+                    npy = np.concatenate((npy, np.load(path)))
+                if npy is not None and (npy.shape[0] >= 1000):
+                    ret.append(npy)
+                    npy = None
+                    c += 1
+                    break
+        if c >= 5:
+            break
+    return ret
+
+
+def npy2face(e_net, g_net, arr, GPU=True):
+    fbank = arr.T[np.newaxis, ...]
+    fbank = torch.from_numpy(fbank.astype('float32'))
     
     if GPU:
         fbank = fbank.cuda()
@@ -113,3 +164,6 @@ def voice2face(e_net, g_net, voice_file, vad_obj, mfc_obj, GPU=True):
     embedding = F.normalize(embedding)
     face = g_net(embedding)
     return face
+
+
+
