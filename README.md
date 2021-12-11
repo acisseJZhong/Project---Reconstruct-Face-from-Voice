@@ -1,6 +1,6 @@
 # Reconstructing faces from voices
 
-This README file is written by Yandong Wen in the [repository](https://github.com/cmu-mlsp/reconstructing_faces_from_voices) for his work Reconstructing Faces from Voices.
+Note: This README file is written by Yandong Wen in the [repository](https://github.com/cmu-mlsp/reconstructing_faces_from_voices) for his work Reconstructing Faces from Voices
 
 ##### Implementation of [Reconstructing faces from voices](https://arxiv.org/abs/1905.10604) paper 
 Yandong Wen, Rita Singh, and Bhiksha Raj
